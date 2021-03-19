@@ -1,0 +1,189 @@
+/*----------HEADER---------*/
+h1 {
+  padding:0;
+  display: block;
+  text-align: center;
+  font-size: 50px;
+  color: rgb(238, 196, 117);
+  justify-content: center;
+}
+/*-------------BODY--------------*/
+body {
+background-size: cover;
+height: 100%;
+background-position: center bottom;
+grid-template-rows: 1vw 34vw 1vw 6vw 1vw 3vw auto;
+display: grid;
+background-repeat: no-repeat;
+font-family: 'Monoton', cursive;
+}
+/*-------VIDEO BACKGROUND-------------*/
+video {
+position: fixed;
+min-width: 100%;
+min-height: 100%;
+width: auto;
+height: auto;
+z-index: -100;
+transform: translateX(-50%) translateY(-50%);
+background-size: cover;
+transition: 1s opacity;
+}
+/*-------------CONTAINER--------------*/
+.outside {
+margin-top: 3vw;
+margin-bottom: 5vw;
+margin-left: auto;
+margin-right: auto;
+display: block;
+grid-template-columns: 36vw;
+grid-template-rows: 36vw;
+justify-content: center;
+grid-row-start: 2;
+background-color:transparent;
+padding: 4vw;
+}
+/*-------------BOARD------------------*/
+.inside {
+display: grid;
+grid-template-columns: repeat(8, 5.5vw);
+grid-template-rows: repeat(8, 5.5vw);
+justify-content: center;
+}
+/*-------------CHESS PIECES--------------*/
+.player-container-outer {
+display: grid;
+grid-row-start: 4;
+justify-content: center;
+grid-template-columns: 32vw;
+grid-template-rows: 2vw 4vw;
+}
+.player-container-inner {
+display: grid;
+grid-template-columns: repeat(2, 16vw);
+grid-template-rows: repeat(1, 3vw);
+justify-content: center;
+grid-row-start: 1;
+}
+.chess-peice-container {
+display: grid;
+grid-template-columns: repeat(2, 16vw);
+grid-template-rows: repeat(1, 4vw);
+grid-row-start: 2;
+font-size: 1.5vw;
+text-align: center;
+}
+.blackP {
+display: grid;
+grid-template-columns: repeat(8, 2vw);
+grid-template-rows: repeat(2, 2vw);
+}
+.whiteP {
+display: grid;
+grid-template-columns: repeat(8, 2vw);
+grid-template-rows: repeat(2, 2vw);
+}
+
+.black {
+background: url(/assets/images/wood1.jpg);
+}
+
+.white {
+background-color: rgba(245, 220, 184, 0.932);
+}
+
+.row {
+font-size: 3vw;
+text-align: center;
+cursor: pointer;
+}
+.dot-container {
+display: block;
+grid-row-start: 6;
+margin: auto;
+display: flex;
+width: 32vw;
+padding: 0.5vw;
+border-radius: 10px;
+background-color: rgba(255, 254, 253, 0.4);
+font-size: 2vw;
+}
+.dot {
+position: relative;
+height: 1.5vw;
+width: 1.5vw;
+margin: auto;
+border-radius: 50%;
+border: 3px solid rgb(8, 5, 5);
+transition: background-color 0.6s ease;
+}
+
+.dot:hover {
+height: 2vw;
+width: 2vw;
+}
+.active {
+background-color: #717171;
+}
+.select {
+box-shadow: 0 0 12px rgba(27, 228, 0, 0.7) inset;
+border: 1px solid rgba(255, 255, 255, 1);
+}
+
+.redselect {
+box-shadow: 0 0 12px rgba(228, 0, 0, 0.7) inset;
+border: 1px solid rgba(255, 255, 255, 1);
+}
+
+.player {
+font-size: 1.5vw;
+font-weight: 1000;
+font-family: "Alex Brush", handwriting;
+}
+
+.white1 {
+text-align: left;
+color: white;
+}
+.active {
+background-color: rgba(255, 255, 255, 0.4);
+height: 2vw;
+}
+
+html {
+height: 100%;
+width: auto;
+}
+
+.board {
+  width: 600px;
+  height: fit-content;
+  display: grid;
+  border: 1px solid black;
+  /* background-color: black; */
+  background-image: url(../images/wood1.jpg);
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.cell {
+  font-size: 3vw;
+  text-align: center;
+  height: 75px;
+  width: 75px;
+  /* position: relative; */
+}
+
+.piece {
+  cursor: pointer;
+}
+
+.highlight {
+  border-radius: 50%;
+  width: 75px;
+  height: 75px;
+  /* position: absolute;
+  left: 50%;
+  right: 50%;
+  transform: translate(-50%, -50%); */
+  background-color: rgba(191, 250, 46, 50%);
+}
