@@ -14,6 +14,7 @@ let SELECTED_PIECE = null;
 let STARTING_SQR = null;
 let CAPTURED_PIECES = [];
 let PLAYER_TURN = 'white';
+let isEnPassant = false;
 
 function renderPiece(rowIndex, colIndex) {
   const initialRowPositions = [0, 1, 6, 7]
@@ -104,6 +105,7 @@ rows.forEach((row, rowIndex)=> {
 
 function possibleMoves(piece, position) {
   const pieceType = piece.getAttribute("data-piece");
+  const pieceColor = piece.getAttribute("data-color");
   const row = position.split('_')[0]
   const col = position.split('_')[1]
 
@@ -112,23 +114,21 @@ function possibleMoves(piece, position) {
   }
 
   if(pieceType == whites.rook || pieceType == black.rook) {
-    straightMove(row, col);
+    straightMove(row, col, pieceType, pieceColor);
   }
 
   if(pieceType == whites.bishop || pieceType == black.bishop) {
-    diagonalMove(row, col);
+    diagonalMove(row, col, pieceType, pieceColor);
   }
 
   if(pieceType == whites.king || pieceType == black.king) {
-    straightMove(row, col, pieceType);
-    diagonalMove(row, col, pieceType);
-
-    // console.log(diagonalMove(row, col, pieceType))
+    straightMove(row, col, pieceType, pieceColor);
+    diagonalMove(row, col, pieceType, pieceColor);
   } 
 
   if(pieceType == whites.queen || pieceType == black.queen) {
-    straightMove(row, col);
-    diagonalMove(row, col);
+    straightMove(row, col, pieceType, pieceColor);
+    diagonalMove(row, col, pieceType, pieceColor);
   }
 
   if(pieceType == whites.knight || pieceType == black.knight) {
@@ -208,7 +208,6 @@ function dropPiece(e) {
 function capturePiece(targetSquare, newPiece) {
   const piece = targetSquare.childNodes[0];
 
-  console.log('capturePiece')
   const attribute = targetSquare.childNodes[0].getAttribute('class');
   if(attribute == 'piece') {
     CAPTURED_PIECES.push(piece.getAttribute('data-piece'))
@@ -282,7 +281,7 @@ function highlightPossibleSquare(square) {
   square.addEventListener('click', dropPiece);
 }
 
-function diagonalMove(row, col, piece) {
+function diagonalMove(row, col, piece, color) {
   let cUpRight = parseInt(col[1]) + 1;
   let cLowLeft = parseInt(col[1]) - 1;
   let cRight = parseInt(col[1]) + 1;
@@ -317,7 +316,9 @@ function diagonalMove(row, col, piece) {
       const upperRighttSqr = getTargetSquare(r, cUpRight);
 
       if(upperLeftSqr && wouldCapture(upperLeftSqr)) {
-        highlightPossibleSquare(upperLeftSqr)
+        // if(!isBlocked(color, upperLeftSqr)) {
+          highlightPossibleSquare(upperLeftSqr)
+        // }
       }
 
       if(upperRighttSqr && wouldCapture(upperRighttSqr)) {
@@ -346,8 +347,7 @@ function diagonalMove(row, col, piece) {
   }
 }
 
-function straightMove(row, col, piece) {
-
+function straightMove(row, col, piece, color) {
   if(piece == whites.king || 
     piece == black.king) {
       const upperSquare = getTargetSquare(row[1] - 1, col[1]);
@@ -375,7 +375,14 @@ function straightMove(row, col, piece) {
     for(let r = row[1] - 1; r >= 0; r--) {
       const upperSquare = getTargetSquare(r, col[1]);
 
-      if(upperSquare && wouldCapture(upperSquare)) {
+      if(isBlocked(color, upperSquare)) {
+        if(wouldCapture(upperSquare)) {
+          highlightPossibleSquare(upperSquare)
+        }
+        return;
+      }
+
+      if(upperSquare) {
         highlightPossibleSquare(upperSquare)
       }
     }
@@ -383,7 +390,14 @@ function straightMove(row, col, piece) {
     for(let r = parseInt(row[1]) + 1; r <= 7; r++) {
       const lowerSquare = getTargetSquare(r, col[1]);
 
-      if(lowerSquare && wouldCapture(lowerSquare)) {
+      if(isBlocked(color, lowerSquare)) {
+        if(wouldCapture(lowerSquare)) {
+          highlightPossibleSquare(lowerSquare)
+        }
+        return;
+      }
+
+      if(lowerSquare) {
         highlightPossibleSquare(lowerSquare)
       }
     }
@@ -391,7 +405,14 @@ function straightMove(row, col, piece) {
     for(let c = col[1] - 1; c >= 0; c--) {
       const left = getTargetSquare(row[1], c);
 
-      if(left && wouldCapture(left)) {
+      if(isBlocked(color, left)) {
+        if(wouldCapture(left)) {
+          highlightPossibleSquare(left)
+        }
+        return;
+      }
+
+      if(left) {
         highlightPossibleSquare(left)
       }
     }
@@ -399,7 +420,14 @@ function straightMove(row, col, piece) {
     for(let c = parseInt(col[1]) + 1; c <= 7; c++) {
       const right = getTargetSquare(row[1], c);
 
-      if(right && wouldCapture(right)) {
+      if(isBlocked(color, right)) {
+        if(wouldCapture(right)) {
+          highlightPossibleSquare(right)
+        }
+        return;
+      }
+
+      if(right) {
         highlightPossibleSquare(right)
       }
     }
@@ -439,4 +467,18 @@ function wouldCapture(targetSquare) {
 
 function getTargetSquare(row, col) {
   return document.querySelector(`[data-index='r${row}_c${col}']`);
+}
+
+function isBlocked(color, targetSquare) {
+  let targetColor;
+  
+  if(targetSquare.childNodes[0]) {
+    targetColor = targetSquare.childNodes[0].getAttribute('data-color');
+  }
+
+  if(color == targetColor || targetSquare.childNodes[0]?.getAttribute('class') === 'piece') {
+    return true
+  }
+
+  return false
 }
