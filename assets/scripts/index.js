@@ -10,28 +10,10 @@ const black = {
     king: '♚', queen: '♛', rook: '♜', bishop: '♝', knight: '♞', pawn: '♟︎',
 }
 
-rows.forEach((row, rowIndex)=> {
-  column.forEach((col, colIndex) => {
-
-    const piece = renderPiece(rowIndex, colIndex);
-    const color = () => {
-      if(rowIndex % 2 === 0) {
-        return colIndex % 2 === 0 ? 'white' : 'black';
-      }
-      return colIndex % 2 === 0 ? 'black' : 'white';
-    }
-    const square = document.createElement('div');
-    
-    square.setAttribute('data-index', `${row}${rowIndex}_${col}${colIndex}`);
-    square.classList.add('cell');
-    square.classList.add(color());
-    if(piece) {
-      square.appendChild(piece);
-      square.addEventListener('click', selectPiece)
-    }
-    board.appendChild(square);
-  })
-});
+let SELECTED_PIECE = null;
+let STARTING_SQR = null;
+let CAPTURED_PIECES = [];
+let PLAYER_TURN = 'white';
 
 function renderPiece(rowIndex, colIndex) {
   const initialRowPositions = [0, 1, 6, 7]
@@ -63,21 +45,25 @@ function renderPiece(rowIndex, colIndex) {
 
     if(rowIndex === 0) {
       piece.innerHTML = blackPieces[colIndex]
-      piece.setAttribute('data-piece', 'blackPieces[colIndex]')
+      piece.setAttribute('data-color', 'black')
+      piece.setAttribute('data-piece', blackPieces[colIndex])
     }
 
     if(rowIndex === 1) {
       piece.innerHTML = black.pawn;
+      piece.setAttribute('data-color', 'black')
       piece.setAttribute('data-piece', black.pawn);
     }
 
     if(rowIndex === 7) {
       piece.innerHTML = whitePieces[colIndex]
+      piece.setAttribute('data-color', 'white')
       piece.setAttribute('data-piece', whitePieces[colIndex]);
     }
 
     if(rowIndex === 6) {
       piece.innerHTML = whites.pawn
+      piece.setAttribute('data-color', 'white')
       piece.setAttribute('data-piece', whites.pawn);
     }
 
@@ -89,146 +75,313 @@ function renderPiece(rowIndex, colIndex) {
   return null
 }
 
-let removeListener;
+rows.forEach((row, rowIndex)=> {
+  column.forEach((col, colIndex) => {
 
+    const piece = renderPiece(rowIndex, colIndex);
+    const color = () => {
+      if(rowIndex % 2 === 0) {
+        return colIndex % 2 === 0 ? 'white' : 'black';
+      }
+      return colIndex % 2 === 0 ? 'black' : 'white';
+    }
+    const square = document.createElement('div');
+    
+    square.setAttribute('data-index', `${row}${rowIndex}_${col}${colIndex}`);
+    square.classList.add('cell');
+    square.classList.add(color());
+    if(piece) {
 
+      const pieceColor = piece.getAttribute('data-color')
+      square.appendChild(piece);
+      if(pieceColor === PLAYER_TURN) {
+        square.addEventListener('click', selectPiece)
+      }
+    }
+    board.appendChild(square);
+  })
+});
 
 function possibleMoves(piece, position) {
   const pieceType = piece.getAttribute("data-piece");
+  const row = position.split('_')[0]
+  const col = position.split('_')[1]
 
-  if(pieceType == whites.pawn) {
-    const row = position.split('_')[0]
-    const col = position.split('_')[1]
-    
-    // check if pawn is from starting
-    if(row == 'r6') {
-      for(let x = 1; x <= 2; x++) {
-        const square = document.querySelector(`[data-index='r${6 - x}_${col}']`);
-        const highlight = document.createElement('div');
-        highlight.classList.add('highlight')
 
-        square.appendChild(highlight)
-        square.addEventListener('click', (e) => movePiece(e, piece));
-      }
-    } else {
-      const square = document.querySelector(`[data-index='r${row[1] - 1}_${col}']`);
-      const highlight = document.createElement('div');
-      highlight.classList.add('highlight')
-
-      square.appendChild(highlight)
-      square.addEventListener('click', (e) => movePiece(e, piece));
-    }
+  if(pieceType == whites.pawn || pieceType == black.pawn) {
+    PawnPossibleMoves(row, col);
   }
 
-  if(piece == whites.rook) {
-
+  if(pieceType == whites.rook || pieceType == black.rook) {
+    straightMove(row, col);
   }
 
-  if(piece == whites.bishop) {
-
+  if(pieceType == whites.bishop || pieceType == black.bishop) {
+    diagonalMove(row, col);
   }
 
-  if(piece == whites.king) {
-
+  if(pieceType == whites.king || pieceType == black.king) {
+    straightMove(row, col);
+    diagonalMove(row, col);
   } 
 
-  if(piece == whites.queen) {
-
-  }
-  
-  if(piece == black.pawn) {
-
+  if(pieceType == whites.queen || pieceType == black.queen) {
+    straightMove(row, col);
+    diagonalMove(row, col);
   }
 
-  if(piece == black.rook) {
-
+  if(pieceType == whites.knight || pieceType == black.knight) {
+    knightMove(row, col)
   }
-
-  if(piece == black.bishop) {
-
-  }
-
-  if(piece == black.king) {
-
-  } 
-
-  if(piece == black.queen) {
-
-  }
-  
 }
 
-function movePiece(e, piece) {
+function selectPiece(e) {
   const square = e.currentTarget;
 
-  const dataIndex = square.getAttribute('data-index');
-
-  console.log('movepeice',dataIndex)
-  piece.style = {}
-  piece.setAttribute('id', dataIndex)
-  square.appendChild(piece);
-
-  const squares = document.querySelectorAll('[data-index]');
-
-  squares.forEach((sq) => {
-    sq.style = {};
-    if (sq.childNodes[0] && sq.childNodes[0].getAttribute("class") == 'highlight'){
-      sq.removeChild(sq.childNodes[0])
-      sq.removeEventListener('click', (e) => movePiece(e, piece));
-    }
-  })
-
-  removeListener();
-  square.addEventListener('click', selectPiece);
-}
-
-function selectPiece(evnt) {
-
-  console.log(evnt.currentTarget)
-
-  const square = evnt.currentTarget
-
-  const position = evnt.currentTarget.getAttribute("data-index");
-  
+  const position = square.getAttribute('data-index');
   const piece = document.querySelector(`#${position}`);
 
   possibleMoves(piece, position)
 
-  function mouseMoveHandler(e) {
-    grabPiece(e, square)
+  STARTING_SQR = square;
+  SELECTED_PIECE = piece;
+
+  document.addEventListener('mousemove', movePiece);
+}
+
+function movePiece(e) {
+  const squares = document.querySelectorAll('[data-index]');
+  squares.forEach((sq) => {
+    sq.removeAttribute("style");
+    if (sq.childNodes[0] && sq.childNodes[0].getAttribute("class") == 'piece'){
+      sq.removeEventListener('click', selectPiece);
+    }
+  })
+  SELECTED_PIECE.style.position = 'absolute';
+  SELECTED_PIECE.style.cursor = 'move'
+  SELECTED_PIECE.style.cursor = 'grabbing'
+  SELECTED_PIECE.style['pointer-events'] = 'none'
+  SELECTED_PIECE.style.left = `${e.pageX - 25}px`
+  SELECTED_PIECE.style.top = `${e.pageY - 25}px`
+}
+
+function dropPiece(e) {
+  const targetSquare = e.currentTarget;
+
+  console.log('dropPiece')
+  capturePiece(targetSquare, SELECTED_PIECE);
+  const pieceData = SELECTED_PIECE.getAttribute('data-piece');
+
+  if(pieceData == whites.pawn || pieceData == black.pawn) {
+    promotePawn(targetSquare, SELECTED_PIECE);
   }
+  
 
-  removeListener = () => document.removeEventListener('mousemove', mouseMoveHandler)
+  targetSquare.appendChild(SELECTED_PIECE);
+  const position = targetSquare.getAttribute('data-index');
+  targetSquare.removeEventListener('click', dropPiece);
 
-  document.addEventListener('mousemove', mouseMoveHandler);
+  SELECTED_PIECE.removeAttribute("style");
+  SELECTED_PIECE.setAttribute('id', position);
+  document.removeEventListener('mousemove', movePiece);
 
-  document.addEventListener('keydown', function releasePiece(e) {
-    if(e.key === "Escape") {
-      document.removeEventListener('keydown', releasePiece);
-      document.removeEventListener('mousemove', mouseMoveHandler);
-      piece.style = {}
+  const squares = document.querySelectorAll('[data-index]');
 
-      const squares = document.querySelectorAll('[data-index]')
+  switchTurn();
 
-      squares.forEach((sq) => {
-        sq.style = {};
-        if (sq.childNodes[0] && sq.childNodes[0].getAttribute("class") == 'highlight'){
-          sq.removeChild(sq.childNodes[0])
-          sq.removeEventListener('click', (e) => movePiece(e, piece));
-        }
-      })
-
-      square.addEventListener('click', selectPiece);
+  squares.forEach((sq) => {
+    sq.removeAttribute("style");
+    if (sq.childNodes[0] && sq.childNodes[0].getAttribute("class") == 'highlight'){
+      sq.removeChild(sq.childNodes[0])
+      sq.removeEventListener('click', selectPiece);
+    }
+    if (sq.childNodes[0] && sq.childNodes[0].getAttribute("class") == 'piece'){
+      if(sq.childNodes[0].getAttribute("data-color") === PLAYER_TURN) {
+        sq.addEventListener('click', selectPiece)
+      }
     }
   })
 
-  function grabPiece(e, square) {
-    square.removeEventListener('click', selectPiece)
-    piece.style.position = 'absolute';
-    piece.style.cursor = 'move'
-    piece.style.cursor = 'grab'
-    piece.style['pointer-events'] = 'none'
-    piece.style.left = `${e.pageX - 50}px`
-    piece.style.top = `${e.pageY - 50}px`
+  SELECTED_PIECE = null;
+}
+
+function capturePiece(targetSquare, newPiece) {
+  const piece = targetSquare.childNodes[0];
+
+  console.log('capturePiece')
+  const attribute = targetSquare.childNodes[0].getAttribute('class');
+  if(attribute == 'piece') {
+    CAPTURED_PIECES.push(piece.getAttribute('data-piece'))
+    targetSquare.replaceChild(newPiece, piece);
   }
+}
+
+function promotePawn(targetSquare, piece) {
+  const position = targetSquare.getAttribute('data-index');
+  const row = position.split('_')[0];
+  
+  if(row == 'r0' || row == 'r7') {
+    console.log('pawn ready for promotion');
+  }
+}
+
+function switchTurn() {
+  const prevPlayer = PLAYER_TURN;
+  const newPlayer = prevPlayer == 'white' ? 'black' : 'white';
+  PLAYER_TURN = newPlayer
+}
+
+function PawnPossibleMoves(row, col) {
+  const direction = (x, num = row[1],) => (PLAYER_TURN == 'white' ? parseInt(num) - x : parseInt(num) + x);
+  if(row == 'r6' || row == 'r1') {
+    const leftDiagSqr = document.querySelector(`[data-index='r${direction(1)}_c${col[1] - 1}']`);
+    const rightDiagSqr = document.querySelector(`[data-index='r${direction(1)}_c${parseInt(col[1]) + 1}']`);
+
+    if(leftDiagSqr?.childNodes[0]) {
+      highlightPossibleSquare(leftDiagSqr)
+    }
+
+    if(rightDiagSqr?.childNodes[0]) {
+      highlightPossibleSquare(rightDiagSqr)
+    }
+
+    const startingRow = PLAYER_TURN === 'white' ? 6 : 1;
+
+    for(let x = 1; x <= 2; x++) {
+      const square = document.querySelector(`[data-index='r${direction(x, startingRow)}_${col}']`);
+
+      if(!square.childNodes[0]) {
+        highlightPossibleSquare(square)
+      }
+    }
+  } else {
+    const square = document.querySelector(`[data-index='r${direction(1)}_${col}']`);
+
+    const leftDiagSqr = document.querySelector(`[data-index='r${direction(1)}_c${col[1] - 1}']`);
+    const rightDiagSqr = document.querySelector(`[data-index='r${direction(1)}_c${parseInt(col[1]) + 1}']`);
+
+    if(leftDiagSqr?.childNodes[0]) {
+      highlightPossibleSquare(leftDiagSqr)
+    }
+    
+    if(rightDiagSqr?.childNodes[0]) {
+      highlightPossibleSquare(rightDiagSqr)
+    }
+
+    if(!square.childNodes[0]) {
+      highlightPossibleSquare(square)
+    }
+  }
+}
+
+function highlightPossibleSquare(square) {
+  const highlight = document.createElement('div');
+  highlight.classList.add('highlight');
+
+  square.appendChild(highlight)
+  square.addEventListener('click', dropPiece);
+}
+
+function diagonalMove(row, col) {
+  let cUpRight = parseInt(col[1]) + 1;
+  let cLowLeft = parseInt(col[1]) - 1;
+  let cRight = parseInt(col[1]) + 1;
+  let cLeft = parseInt(col[1]) - 1;
+
+  for(let r = row[1] - 1; r >= 0; r--) {
+    const upperLeftSqr = document.querySelector(`[data-index='r${r}_c${cLowLeft}']`);
+    const upperRighttSqr = document.querySelector(`[data-index='r${r}_c${cUpRight}']`);
+
+    if(upperLeftSqr && wouldCapture(upperLeftSqr)) {
+      highlightPossibleSquare(upperLeftSqr)
+    }
+
+    if(upperRighttSqr && wouldCapture(upperRighttSqr)) {
+      highlightPossibleSquare(upperRighttSqr)
+    }
+
+    cUpRight++
+    cLowLeft--
+  }
+
+  for(let r = parseInt(row[1]) + 1; r <= 7; r++) {
+    const lowerLeftSqr = document.querySelector(`[data-index='r${r}_c${cLeft}']`);
+    const lowerRightSqr = document.querySelector(`[data-index='r${r}_c${cRight}']`);
+
+    if(lowerLeftSqr && wouldCapture(lowerLeftSqr)) {
+      highlightPossibleSquare(lowerLeftSqr)
+    }
+
+    if(lowerRightSqr && wouldCapture(lowerRightSqr)) {
+      highlightPossibleSquare(lowerRightSqr)
+    }
+
+    cRight++
+    cLeft--
+  }
+}
+
+function straightMove(row, col) {
+  for(let r = row[1] - 1; r >= 0; r--) {
+    const upperSquare = document.querySelector(`[data-index='r${r}_${col}']`);
+
+    if(upperSquare && wouldCapture(upperSquare)) {
+      highlightPossibleSquare(upperSquare)
+    }
+  }
+
+  for(let r = parseInt(row[1]) + 1; r <= 7; r++) {
+    const lowerSquare = document.querySelector(`[data-index='r${r}_${col}']`);
+
+    if(lowerSquare && wouldCapture(lowerSquare)) {
+      highlightPossibleSquare(lowerSquare)
+    }
+  }
+
+  for(let c = col[1] - 1; c >= 0; c--) {
+    const left = document.querySelector(`[data-index='${row}_c${c}']`);
+
+    if(left && wouldCapture(left)) {
+      highlightPossibleSquare(left)
+    }
+  }
+
+  for(let c = parseInt(col[1]) + 1; c <= 7; c++) {
+    const right = document.querySelector(`[data-index='${row}_c${c}']`);
+
+    if(right && wouldCapture(right)) {
+      highlightPossibleSquare(right)
+    }
+  }
+}
+
+function knightMove(row, col) {
+  const r = parseInt(row[1]);
+  const c = parseInt(col[1]);
+  const upperRightSqr = document.querySelector(`[data-index='r${r + 2}_c${c + 1}']`);
+  const upperLeftSqr = document.querySelector(`[data-index='r${r + 2}_c${c - 1}']`);
+  const lowerRightSqr = document.querySelector(`[data-index='r${r - 2}_c${c + 1}']`);
+  const lowerLeftSqr = document.querySelector(`[data-index='r${r - 2}_c${c - 1}']`);
+
+  const upperRightSqr2 = document.querySelector(`[data-index='r${r + 1}_c${c + 2}']`);
+  const upperLeftSqr2 = document.querySelector(`[data-index='r${r + 1}_c${c - 2}']`);
+  const lowerRightSqr2 = document.querySelector(`[data-index='r${r - 1}_c${c + 2}']`);
+  const lowerLeftSqr2 = document.querySelector(`[data-index='r${r - 1}_c${c - 2}']`);
+
+  if(upperRightSqr && wouldCapture(upperRightSqr)) highlightPossibleSquare(upperRightSqr);
+  if(upperLeftSqr && wouldCapture(upperLeftSqr)) highlightPossibleSquare(upperLeftSqr);
+  if(lowerRightSqr && wouldCapture(lowerRightSqr)) highlightPossibleSquare(lowerRightSqr);
+  if(lowerLeftSqr && wouldCapture(lowerLeftSqr)) highlightPossibleSquare(lowerLeftSqr);
+
+  if(upperRightSqr2 && wouldCapture(upperRightSqr2)) highlightPossibleSquare(upperRightSqr2);
+  if(upperLeftSqr2 && wouldCapture(upperLeftSqr2)) highlightPossibleSquare(upperLeftSqr2);
+  if(lowerRightSqr2 && wouldCapture(lowerRightSqr2)) highlightPossibleSquare(lowerRightSqr2);
+  if(lowerLeftSqr2 && wouldCapture(lowerLeftSqr2)) highlightPossibleSquare(lowerLeftSqr2);
+}
+
+function wouldCapture(targetSquare) {
+  if(targetSquare.childNodes[0]) {
+    return targetSquare.childNodes[0].getAttribute('data-color') !== PLAYER_TURN;
+  }
+  return !targetSquare.childNodes[0]
 }

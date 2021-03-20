@@ -175,6 +175,7 @@ width: auto;
 
 .piece {
   cursor: pointer;
+  cursor: grab;
 }
 
 .highlight {
