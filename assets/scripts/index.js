@@ -283,13 +283,13 @@ function highlightPossibleSquare(square) {
 
 function diagonalMove(row, col, piece, color) {
   let cUpRight = parseInt(col[1]) + 1;
-  let cLowLeft = parseInt(col[1]) - 1;
+  let cUpLeft = parseInt(col[1]) - 1;
   let cRight = parseInt(col[1]) + 1;
   let cLeft = parseInt(col[1]) - 1;
 
   if(piece == whites.king || 
     piece == black.king) {
-      const upperLeftSqr = getTargetSquare(row[1] - 1, cLowLeft);
+      const upperLeftSqr = getTargetSquare(row[1] - 1, cUpLeft);
       const upperRighttSqr = getTargetSquare(row[1] - 1, cUpRight);
       const lowerLeftSqr = getTargetSquare(row[1] + 1, cLeft);
       const lowerRightSqr = getTargetSquare(row[1] + 1, cRight);
@@ -311,30 +311,67 @@ function diagonalMove(row, col, piece, color) {
       }
     }
   else {
+    // ======= upper side origin square =======
     for(let r = row[1] - 1; r >= 0; r--) {
-      const upperLeftSqr = getTargetSquare(r, cLowLeft);
-      const upperRighttSqr = getTargetSquare(r, cUpRight);
+      const upperLeftSqr = getTargetSquare(r, cUpLeft);
 
-      if(upperLeftSqr && wouldCapture(upperLeftSqr)) {
-        // if(!isBlocked(color, upperLeftSqr)) {
+      if(isBlocked(color, upperLeftSqr)) {
+        if(wouldCapture(upperLeftSqr)) {
           highlightPossibleSquare(upperLeftSqr)
-        // }
+        }
+        return;
       }
 
-      if(upperRighttSqr && wouldCapture(upperRighttSqr)) {
-        highlightPossibleSquare(upperRighttSqr)
+      if(upperLeftSqr) {
+        highlightPossibleSquare(upperLeftSqr)
       }
 
       cUpRight++
-      cLowLeft--
     }
 
+    for(let r = row[1] - 1; r >= 0; r--) {
+      const upperRightSqr = getTargetSquare(r, cUpRight);
+
+      if(isBlocked(color, upperRightSqr)) {
+        if(wouldCapture(upperRightSqr)) {
+          highlightPossibleSquare(upperRightSqr)
+        }
+        return;
+      }
+
+      if(upperRightSqr) {
+        highlightPossibleSquare(upperRightSqr)
+      }
+
+      cUpRight++
+    }
+
+    // ======= lower side origin square =======
     for(let r = parseInt(row[1]) + 1; r <= 7; r++) {
       const lowerLeftSqr = getTargetSquare(r, cLeft);
-      const lowerRightSqr = getTargetSquare(r, cRight);
+
+      if(isBlocked(color, lowerLeftSqr)) {
+        if(wouldCapture(lowerLeftSqr)) {
+          highlightPossibleSquare(lowerLeftSqr)
+        }
+        return;
+      }
 
       if(lowerLeftSqr && wouldCapture(lowerLeftSqr)) {
         highlightPossibleSquare(lowerLeftSqr)
+      }
+
+      cLeft--
+    }
+
+    for(let r = parseInt(row[1]) + 1; r <= 7; r++) {
+      const lowerRightSqr = getTargetSquare(r, cRight);
+
+      if(isBlocked(color, lowerRightSqr)) {
+        if(wouldCapture(lowerRightSqr)) {
+          highlightPossibleSquare(lowerRightSqr)
+        }
+        return;
       }
 
       if(lowerRightSqr && wouldCapture(lowerRightSqr)) {
@@ -342,7 +379,6 @@ function diagonalMove(row, col, piece, color) {
       }
 
       cRight++
-      cLeft--
     }
   }
 }
