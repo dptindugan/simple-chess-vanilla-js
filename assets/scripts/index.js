@@ -358,16 +358,16 @@ function diagonalMove(row, col, piece, color) {
   if(piece == whites.king || 
     piece == black.king) {
       const upperLeftSqr = getTargetSquare(row[1] - 1, cUpLeft);
-      const upperRighttSqr = getTargetSquare(row[1] - 1, cUpRight);
-      const lowerLeftSqr = getTargetSquare(row[1] + 1, cLeft);
-      const lowerRightSqr = getTargetSquare(row[1] + 1, cRight);
+      const upperRightSqr = getTargetSquare(row[1] - 1, cUpRight);
+      const lowerLeftSqr = getTargetSquare(parseInt(row[1]) + 1, cLeft);
+      const lowerRightSqr = getTargetSquare(parseInt(row[1]) + 1, cRight);
 
       if(upperLeftSqr && wouldCapture(upperLeftSqr)) {
         highlightPossibleSquare(upperLeftSqr)
       }
 
-      if(upperRighttSqr && wouldCapture(upperRighttSqr)) {
-        highlightPossibleSquare(upperRighttSqr)
+      if(upperRightSqr && wouldCapture(upperRightSqr)) {
+        highlightPossibleSquare(upperRightSqr)
       }
 
       if(lowerLeftSqr && wouldCapture(lowerLeftSqr)) {
@@ -398,16 +398,16 @@ function diagonalMove(row, col, piece, color) {
     }
 
     for(let r = row[1] - 1; r >= 0; r--) {
-      const upperRighttSqr = getTargetSquare(r, cUpRight);
-      if(upperRighttSqr && isBlocked(color, upperRighttSqr)) {
-        if(upperRighttSqr && wouldCapture(upperRighttSqr)) {
-          highlightPossibleSquare(upperRighttSqr)
+      const upperRightSqr = getTargetSquare(r, cUpRight);
+      if(upperRightSqr && isBlocked(color, upperRightSqr)) {
+        if(upperRightSqr && wouldCapture(upperRightSqr)) {
+          highlightPossibleSquare(upperRightSqr)
         }
         break;
       }
 
-      if(upperRighttSqr && wouldCapture(upperRighttSqr)) {
-        highlightPossibleSquare(upperRighttSqr)
+      if(upperRightSqr && wouldCapture(upperRightSqr)) {
+        highlightPossibleSquare(upperRightSqr)
       }
 
       cUpRight++
@@ -566,6 +566,8 @@ function wouldCapture(targetSquare) {
   if(targetSquare.childNodes[0]) {
     return targetSquare.childNodes[0].getAttribute('data-color') !== PLAYER_TURN;
   }
+  console.log('would capture')
+
   return !targetSquare.childNodes[0]
 }
 
