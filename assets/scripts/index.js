@@ -107,7 +107,6 @@ function possibleMoves(piece, position) {
   const row = position.split('_')[0]
   const col = position.split('_')[1]
 
-
   if(pieceType == whites.pawn || pieceType == black.pawn) {
     PawnPossibleMoves(row, col);
   }
@@ -121,8 +120,10 @@ function possibleMoves(piece, position) {
   }
 
   if(pieceType == whites.king || pieceType == black.king) {
-    straightMove(row, col);
-    diagonalMove(row, col);
+    straightMove(row, col, pieceType);
+    diagonalMove(row, col, pieceType);
+
+    // console.log(diagonalMove(row, col, pieceType))
   } 
 
   if(pieceType == whites.queen || pieceType == black.queen) {
@@ -168,7 +169,6 @@ function movePiece(e) {
 function dropPiece(e) {
   const targetSquare = e.currentTarget;
 
-  console.log('dropPiece')
   capturePiece(targetSquare, SELECTED_PIECE);
   const pieceData = SELECTED_PIECE.getAttribute('data-piece');
 
@@ -234,8 +234,8 @@ function switchTurn() {
 function PawnPossibleMoves(row, col) {
   const direction = (x, num = row[1],) => (PLAYER_TURN == 'white' ? parseInt(num) - x : parseInt(num) + x);
   if(row == 'r6' || row == 'r1') {
-    const leftDiagSqr = document.querySelector(`[data-index='r${direction(1)}_c${col[1] - 1}']`);
-    const rightDiagSqr = document.querySelector(`[data-index='r${direction(1)}_c${parseInt(col[1]) + 1}']`);
+    const leftDiagSqr = getTargetSquare(direction(1), col[1] - 1);
+    const rightDiagSqr = getTargetSquare(direction(1), parseInt(col[1]) + 1);
 
     if(leftDiagSqr?.childNodes[0]) {
       highlightPossibleSquare(leftDiagSqr)
@@ -248,17 +248,17 @@ function PawnPossibleMoves(row, col) {
     const startingRow = PLAYER_TURN === 'white' ? 6 : 1;
 
     for(let x = 1; x <= 2; x++) {
-      const square = document.querySelector(`[data-index='r${direction(x, startingRow)}_${col}']`);
+      const square = getTargetSquare(direction(x, startingRow), col[1]);
 
       if(!square.childNodes[0]) {
         highlightPossibleSquare(square)
       }
     }
   } else {
-    const square = document.querySelector(`[data-index='r${direction(1)}_${col}']`);
+    const square = getTargetSquare(direction(1), col[1]);
 
-    const leftDiagSqr = document.querySelector(`[data-index='r${direction(1)}_c${col[1] - 1}']`);
-    const rightDiagSqr = document.querySelector(`[data-index='r${direction(1)}_c${parseInt(col[1]) + 1}']`);
+    const leftDiagSqr = getTargetSquare(direction(1), col[1] - 1);
+    const rightDiagSqr = getTargetSquare(direction(1), parseInt(col[1]) + 1);
 
     if(leftDiagSqr?.childNodes[0]) {
       highlightPossibleSquare(leftDiagSqr)
@@ -282,75 +282,126 @@ function highlightPossibleSquare(square) {
   square.addEventListener('click', dropPiece);
 }
 
-function diagonalMove(row, col) {
+function diagonalMove(row, col, piece) {
   let cUpRight = parseInt(col[1]) + 1;
   let cLowLeft = parseInt(col[1]) - 1;
   let cRight = parseInt(col[1]) + 1;
   let cLeft = parseInt(col[1]) - 1;
 
-  for(let r = row[1] - 1; r >= 0; r--) {
-    const upperLeftSqr = document.querySelector(`[data-index='r${r}_c${cLowLeft}']`);
-    const upperRighttSqr = document.querySelector(`[data-index='r${r}_c${cUpRight}']`);
+  if(piece == whites.king || 
+    piece == black.king) {
+      const upperLeftSqr = getTargetSquare(row[1] - 1, cLowLeft);
+      const upperRighttSqr = getTargetSquare(row[1] - 1, cUpRight);
+      const lowerLeftSqr = getTargetSquare(row[1] + 1, cLeft);
+      const lowerRightSqr = getTargetSquare(row[1] + 1, cRight);
 
-    if(upperLeftSqr && wouldCapture(upperLeftSqr)) {
-      highlightPossibleSquare(upperLeftSqr)
+      if(upperLeftSqr && wouldCapture(upperLeftSqr)) {
+        highlightPossibleSquare(upperLeftSqr)
+      }
+
+      if(upperRighttSqr && wouldCapture(upperRighttSqr)) {
+        highlightPossibleSquare(upperRighttSqr)
+      }
+
+      if(lowerLeftSqr && wouldCapture(lowerLeftSqr)) {
+        highlightPossibleSquare(lowerLeftSqr)
+      }
+
+      if(lowerRightSqr && wouldCapture(lowerRightSqr)) {
+        highlightPossibleSquare(lowerRightSqr)
+      }
+    }
+  else {
+    for(let r = row[1] - 1; r >= 0; r--) {
+      const upperLeftSqr = getTargetSquare(r, cLowLeft);
+      const upperRighttSqr = getTargetSquare(r, cUpRight);
+
+      if(upperLeftSqr && wouldCapture(upperLeftSqr)) {
+        highlightPossibleSquare(upperLeftSqr)
+      }
+
+      if(upperRighttSqr && wouldCapture(upperRighttSqr)) {
+        highlightPossibleSquare(upperRighttSqr)
+      }
+
+      cUpRight++
+      cLowLeft--
     }
 
-    if(upperRighttSqr && wouldCapture(upperRighttSqr)) {
-      highlightPossibleSquare(upperRighttSqr)
+    for(let r = parseInt(row[1]) + 1; r <= 7; r++) {
+      const lowerLeftSqr = getTargetSquare(r, cLeft);
+      const lowerRightSqr = getTargetSquare(r, cRight);
+
+      if(lowerLeftSqr && wouldCapture(lowerLeftSqr)) {
+        highlightPossibleSquare(lowerLeftSqr)
+      }
+
+      if(lowerRightSqr && wouldCapture(lowerRightSqr)) {
+        highlightPossibleSquare(lowerRightSqr)
+      }
+
+      cRight++
+      cLeft--
     }
-
-    cUpRight++
-    cLowLeft--
-  }
-
-  for(let r = parseInt(row[1]) + 1; r <= 7; r++) {
-    const lowerLeftSqr = document.querySelector(`[data-index='r${r}_c${cLeft}']`);
-    const lowerRightSqr = document.querySelector(`[data-index='r${r}_c${cRight}']`);
-
-    if(lowerLeftSqr && wouldCapture(lowerLeftSqr)) {
-      highlightPossibleSquare(lowerLeftSqr)
-    }
-
-    if(lowerRightSqr && wouldCapture(lowerRightSqr)) {
-      highlightPossibleSquare(lowerRightSqr)
-    }
-
-    cRight++
-    cLeft--
   }
 }
 
-function straightMove(row, col) {
-  for(let r = row[1] - 1; r >= 0; r--) {
-    const upperSquare = document.querySelector(`[data-index='r${r}_${col}']`);
+function straightMove(row, col, piece) {
 
-    if(upperSquare && wouldCapture(upperSquare)) {
-      highlightPossibleSquare(upperSquare)
+  if(piece == whites.king || 
+    piece == black.king) {
+      const upperSquare = getTargetSquare(row[1] - 1, col[1]);
+
+      if(upperSquare && wouldCapture(upperSquare)) {
+        highlightPossibleSquare(upperSquare)
+      }
+      const lowerSquare = getTargetSquare(parseInt(row[1]) + 1, col[1]);
+  
+      if(lowerSquare && wouldCapture(lowerSquare)) {
+        highlightPossibleSquare(lowerSquare)
+      }
+      const left = getTargetSquare(row[1], col[1] - 1);
+  
+      if(left && wouldCapture(left)) {
+        highlightPossibleSquare(left)
+      }
+      const right = getTargetSquare(row[1], parseInt(col[1]) + 1);
+  
+      if(right && wouldCapture(right)) {
+        highlightPossibleSquare(right)
+      }
     }
-  }
+  else {
+    for(let r = row[1] - 1; r >= 0; r--) {
+      const upperSquare = getTargetSquare(r, col[1]);
 
-  for(let r = parseInt(row[1]) + 1; r <= 7; r++) {
-    const lowerSquare = document.querySelector(`[data-index='r${r}_${col}']`);
-
-    if(lowerSquare && wouldCapture(lowerSquare)) {
-      highlightPossibleSquare(lowerSquare)
+      if(upperSquare && wouldCapture(upperSquare)) {
+        highlightPossibleSquare(upperSquare)
+      }
     }
-  }
 
-  for(let c = col[1] - 1; c >= 0; c--) {
-    const left = document.querySelector(`[data-index='${row}_c${c}']`);
+    for(let r = parseInt(row[1]) + 1; r <= 7; r++) {
+      const lowerSquare = getTargetSquare(r, col[1]);
 
-    if(left && wouldCapture(left)) {
-      highlightPossibleSquare(left)
+      if(lowerSquare && wouldCapture(lowerSquare)) {
+        highlightPossibleSquare(lowerSquare)
+      }
     }
-  }
 
-  for(let c = parseInt(col[1]) + 1; c <= 7; c++) {
-    const right = document.querySelector(`[data-index='${row}_c${c}']`);
+    for(let c = col[1] - 1; c >= 0; c--) {
+      const left = getTargetSquare(row[1], c);
 
-    if(right && wouldCapture(right)) {
-      highlightPossibleSquare(right)
+      if(left && wouldCapture(left)) {
+        highlightPossibleSquare(left)
+      }
+    }
+
+    for(let c = parseInt(col[1]) + 1; c <= 7; c++) {
+      const right = getTargetSquare(row[1], c);
+
+      if(right && wouldCapture(right)) {
+        highlightPossibleSquare(right)
+      }
     }
   }
 }
@@ -358,15 +409,15 @@ function straightMove(row, col) {
 function knightMove(row, col) {
   const r = parseInt(row[1]);
   const c = parseInt(col[1]);
-  const upperRightSqr = document.querySelector(`[data-index='r${r + 2}_c${c + 1}']`);
-  const upperLeftSqr = document.querySelector(`[data-index='r${r + 2}_c${c - 1}']`);
-  const lowerRightSqr = document.querySelector(`[data-index='r${r - 2}_c${c + 1}']`);
-  const lowerLeftSqr = document.querySelector(`[data-index='r${r - 2}_c${c - 1}']`);
+  const upperRightSqr = getTargetSquare(r + 2, c + 1);
+  const upperLeftSqr = getTargetSquare(r + 2, c - 1);
+  const lowerRightSqr = getTargetSquare(r - 2, c + 1);
+  const lowerLeftSqr = getTargetSquare(r - 2, c - 1);
 
-  const upperRightSqr2 = document.querySelector(`[data-index='r${r + 1}_c${c + 2}']`);
-  const upperLeftSqr2 = document.querySelector(`[data-index='r${r + 1}_c${c - 2}']`);
-  const lowerRightSqr2 = document.querySelector(`[data-index='r${r - 1}_c${c + 2}']`);
-  const lowerLeftSqr2 = document.querySelector(`[data-index='r${r - 1}_c${c - 2}']`);
+  const upperRightSqr2 = getTargetSquare(r + 1, c + 2);
+  const upperLeftSqr2 = getTargetSquare(r + 1, c - 2);
+  const lowerRightSqr2 = getTargetSquare(r - 1, c + 2);
+  const lowerLeftSqr2 = getTargetSquare(r - 1, c - 2);
 
   if(upperRightSqr && wouldCapture(upperRightSqr)) highlightPossibleSquare(upperRightSqr);
   if(upperLeftSqr && wouldCapture(upperLeftSqr)) highlightPossibleSquare(upperLeftSqr);
@@ -384,4 +435,8 @@ function wouldCapture(targetSquare) {
     return targetSquare.childNodes[0].getAttribute('data-color') !== PLAYER_TURN;
   }
   return !targetSquare.childNodes[0]
+}
+
+function getTargetSquare(row, col) {
+  return document.querySelector(`[data-index='r${row}_c${col}']`);
 }
